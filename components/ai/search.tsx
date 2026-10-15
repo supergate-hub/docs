@@ -2,6 +2,7 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type InferUITool, type Tool, type UIMessage } from 'ai';
 import type { ReactNode } from 'react';
+import { basePath } from '@/lib/shared';
 import { type AIChatClientData, AIChatProvider, AIChatSearch } from './chat';
 
 export { AIChatPanel, AIChatTrigger, useAIChat } from './chat';
@@ -27,7 +28,8 @@ export function AIChat({ children }: { children: ReactNode }) {
     id: 'search',
     throttle: 40,
     transport: new DefaultChatTransport({
-      api: '/api/chat',
+      // Matches trailingSlash in next.config.mjs, which would otherwise redirect the POST.
+      api: `${basePath}/api/chat/`,
     }),
   });
 
