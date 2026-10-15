@@ -1,0 +1,18 @@
+---
+title: Migrate from OpenAI
+description: Point an existing OpenAI SDK integration at Token Factory.
+---
+
+<Callout type="warn" title="Draft">
+  Outline only.
+</Callout>
+
+Token Factory accepts OpenAI-compatible requests. In most integrations, only three values change:
+
+| Setting | OpenAI | Token Factory |
+| --- | --- | --- |
+| Base URL | `https://api.openai.com/v1` | `<TOKEN_FACTORY_BASE_URL>` |
+| API key | `OPENAI_API_KEY` | `TOKEN_FACTORY_API_KEY` |
+| Model | `gpt-*` | `<model-id>` |
+
+## Differences to check

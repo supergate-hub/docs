@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Overrides inline styles set by the scroll lock, so !important is required. */
+html > body[data-scroll-locked] {
+  /* biome-ignore lint/complexity/noImportantStyles: must beat inline styles */
+  margin-right: 0px !important;
+  /* biome-ignore lint/complexity/noImportantStyles: must beat inline styles */
+  --removed-body-scroll-bar-size: 0px !important;
+}

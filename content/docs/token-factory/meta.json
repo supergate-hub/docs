@@ -1,0 +1,16 @@
+{
+  "title": "Token Factory",
+  "description": "Inference API for open models",
+  "icon": "Sparkles",
+  "root": true,
+  "pages": [
+    "index",
+    "quickstart",
+    "---Guides---",
+    "models",
+    "endpoints",
+    "migrate-from-openai",
+    "---Reference---",
+    "api-reference"
+  ]
+}

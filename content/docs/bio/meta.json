@@ -1,0 +1,16 @@
+{
+  "title": "Bio Pipeline",
+  "description": "Biology tasks and pipelines",
+  "icon": "Dna",
+  "root": true,
+  "pages": [
+    "index",
+    "quickstart",
+    "---Guides---",
+    "tasks",
+    "tools",
+    "---Platform---",
+    "pipelines",
+    "api"
+  ]
+}
