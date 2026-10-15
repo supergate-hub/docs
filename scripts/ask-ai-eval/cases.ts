@@ -24,7 +24,7 @@ export const cases: EvalCase[] = [
     question: 'How do I set the base URL when calling Token Factory with the OpenAI Python SDK?',
     expect: {
       language: 'en',
-      cites: ['/docs/token-factory/quickstart', '/docs/token-factory/migrate-from-openai'],
+      cites: ['/token-factory/quickstart', '/token-factory/migrate-from-openai'],
       placeholders: ['<TOKEN_FACTORY_BASE_URL>'],
     },
   },
@@ -33,17 +33,17 @@ export const cases: EvalCase[] = [
     question: 'OpenAI Python SDK로 Token Factory를 호출하려면 base URL을 어떻게 설정하나요?',
     expect: {
       language: 'ko',
-      cites: ['/docs/token-factory/quickstart', '/docs/token-factory/migrate-from-openai'],
+      cites: ['/token-factory/quickstart', '/token-factory/migrate-from-openai'],
       placeholders: ['<TOKEN_FACTORY_BASE_URL>'],
     },
   },
   {
     id: 'this-page-summary',
     question: 'Summarize this page',
-    page: { path: '/docs/cloud/quickstart', title: 'Quickstart' },
+    page: { path: '/cloud/quickstart', title: 'Quickstart' },
     expect: {
       language: 'en',
-      cites: ['/docs/cloud/quickstart'],
+      cites: ['/cloud/quickstart'],
       mentions: ['SSH'],
     },
   },
@@ -69,7 +69,7 @@ export const cases: EvalCase[] = [
     question: 'For steady high-volume traffic, should I use serverless or dedicated endpoints?',
     expect: {
       language: 'en',
-      cites: ['/docs/token-factory/endpoints'],
+      cites: ['/token-factory/endpoints'],
       mentions: ['dedicated'],
     },
   },

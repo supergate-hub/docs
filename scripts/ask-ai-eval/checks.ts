@@ -16,8 +16,16 @@ const UNKNOWN_EN =
 const UNKNOWN_KO =
   /나와 있지|나와있지|없습니다|없어요|없네요|확인되지|확인할 수 없|다루지|찾을 수 없|찾지 못|명시되어 있지|포함되어 있지|언급되어 있지|알 수 없/;
 
-/** Runs every check that applies to the case. `corpus` is the full docs text. */
-export function runChecks(answer: string, evalCase: EvalCase, corpus: string): CheckResult[] {
+/** The docs the answers are checked against. */
+export interface Corpus {
+  /** Full text of every page, for spotting URLs that the docs never mention. */
+  text: string;
+  /** Path of every page, such as "/" or "/token-factory/quickstart". */
+  paths: Set<string>;
+}
+
+/** Runs every check that applies to the case. */
+export function runChecks(answer: string, evalCase: EvalCase, corpus: Corpus): CheckResult[] {
   const { expect } = evalCase;
   // An empty answer usually means the model kept calling tools until the step limit. Report that
   // alone instead of failing every other check for the same reason.
@@ -36,7 +44,7 @@ export function runChecks(answer: string, evalCase: EvalCase, corpus: string): C
 
   const invented = [...answer.matchAll(URL_PATTERN)]
     .map((match) => match[0].replace(/[.,;:!?]+$/, ''))
-    .filter((url) => !corpus.includes(url));
+    .filter((url) => !corpus.text.includes(url));
   results.push({
     name: 'no-invented-urls',
     pass: invented.length === 0,
@@ -50,18 +58,19 @@ export function runChecks(answer: string, evalCase: EvalCase, corpus: string): C
     detail: answer.match(BRACKET_CITATION_PATTERN)?.[0].slice(0, 80),
   });
 
+  // Links to docs pages, whether the model wrote them as paths or added a scheme and domain.
   const docLinks = [...answer.matchAll(LINK_PATTERN)]
-    .map((match) => match[1])
-    .filter((target) => target.includes('/docs'));
-  const absolute = docLinks.filter((target) => !target.startsWith('/docs'));
+    .map((match) => ({ target: match[1], path: pathOf(match[1]) }))
+    .filter((link) => corpus.paths.has(link.path));
+  const absolute = docLinks.filter((link) => /^[a-z]+:\/\//i.test(link.target));
   results.push({
     name: 'relative-doc-links',
     pass: absolute.length === 0,
-    detail: absolute.join(' ') || undefined,
+    detail: absolute.map((link) => link.target).join(' ') || undefined,
   });
 
   if (expect.cites) {
-    const paths = docLinks.map((target) => new URL(target, 'http://docs.local').pathname);
+    const paths = docLinks.map((link) => link.path);
     results.push({
       name: 'cites-expected',
       pass: expect.cites.some((path) => paths.includes(path)),
@@ -92,6 +101,10 @@ export function runChecks(answer: string, evalCase: EvalCase, corpus: string): C
   }
 
   return results;
+}
+
+function pathOf(target: string): string {
+  return new URL(target, 'http://docs.local').pathname.replace(/\/$/, '') || '/';
 }
 
 /** Removes fenced and inline code, which stays in English whatever the answer language. */

@@ -10,13 +10,13 @@ Public documentation site for Supergate's three products, built with
 
 | Product | Content folder | URL |
 | --- | --- | --- |
-| Cloud (GPU IaaS) | `content/docs/cloud/` | `/docs/cloud` |
-| Token Factory (OpenAI-compatible inference API) | `content/docs/token-factory/` | `/docs/token-factory` |
-| Bio Pipeline | `content/docs/bio/` | `/docs/bio` |
+| Cloud (GPU IaaS) | `content/docs/cloud/` | `/cloud` |
+| Token Factory (OpenAI-compatible inference API) | `content/docs/token-factory/` | `/token-factory` |
+| Bio Pipeline | `content/docs/bio/` | `/bio` |
 
-The marketing landing site is a separate project. This app only serves docs, and
-`/` redirects to `/docs`. The site is a static export published to GitHub Pages; see
-[Deployment](#deployment).
+The marketing landing site is a separate project. This app only serves docs, so the
+docs live at the site root and the hub page is `/`. The site is a static export
+published to GitHub Pages; see [Deployment](#deployment).
 
 **This repository is public.** Everything committed here is visible to anyone.
 
@@ -46,8 +46,7 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `lib/layout.shared.tsx` | Nav options shared by layouts |
 | `components/mdx.tsx` | Components available in MDX without imports |
 | `components/search-dialog.tsx` | Search dialog that queries the exported index in the browser |
-| `app/page.tsx` | Root page that refreshes to `/docs` |
-| `app/docs/` | Docs layout and page route |
+| `app/(docs)/` | Docs layout and the catch-all page route at the site root |
 | `app/api/search/` | Search index, exported at build time |
 | `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents |
 | `app/og/` | Generated Open Graph images |
@@ -62,8 +61,9 @@ the same lint and build without deploying.
 
 - **Static only.** `next.config.mjs` sets `output: 'export'`, so nothing runs at request
   time: no middleware, no `redirects()`, and no route handlers other than static `GET`.
-- **Base path.** On `github.io` the site lives under `/docs`, so docs pages are at
-  `/docs/docs/...`. The workflow passes it as `NEXT_PUBLIC_BASE_PATH`. Next.js adds it
+- **Base path.** On `github.io` the site lives under `/docs` (the repository name),
+  so a page such as `/cloud` is served at `/docs/cloud/`. The workflow passes it as
+  `NEXT_PUBLIC_BASE_PATH`. Next.js adds it
   to `<Link>` and assets; prefix `basePath` from `lib/shared.ts` yourself for URLs that
   code fetches directly.
 - **Custom domain.** Set it in the repository's Pages settings. `configure-pages` then
@@ -107,7 +107,7 @@ GitHub Pages, which has no server. See `.env.example` for the OpenRouter setting
   across pages. For console vs CLI steps, use
   `<Tabs groupId="interface" persist items={['Console', 'CLI']}>`.
 - Link to other pages with relative file paths (`./quickstart.mdx`) or absolute
-  docs URLs (`/docs/cloud/quickstart`).
+  docs URLs (`/cloud/quickstart`).
 - Mark unfinished pages with a `<Callout type="warn" title="Draft">` at the top.
 
 ### Page templates

@@ -24,7 +24,7 @@ import {
 } from '../../lib/ai/assistant';
 import { streamBaselineAnswer } from './baseline';
 import { cases, type EvalCase } from './cases';
-import { type CheckResult, runChecks } from './checks';
+import { type CheckResult, type Corpus, runChecks } from './checks';
 
 type Variant = 'baseline' | 'current';
 
@@ -85,7 +85,7 @@ async function main() {
   const reps = Number(args.reps ?? 1);
 
   const pages = await loadPages();
-  const corpus = pages.map((page) => page.content).join('\n');
+  const corpus = toCorpus(pages);
   const index = createDocsIndex(pages);
   const model = createOpenRouter({ apiKey }).chat(MODEL);
 
@@ -137,7 +137,7 @@ async function runOnce({
   rep: number;
   model: LanguageModel;
   index: DocsIndex;
-  corpus: string;
+  corpus: Corpus;
 }): Promise<RunRecord> {
   const message: ChatUIMessage = {
     id: `${evalCase.id}-${rep}`,
@@ -210,7 +210,7 @@ async function runOnce({
 
 async function rescore(file: string) {
   const report = JSON.parse(readFileSync(file, 'utf8')) as { records: RunRecord[] };
-  const corpus = (await loadPages()).map((page) => page.content).join('\n');
+  const corpus = toCorpus(await loadPages());
   const records = report.records.map((record): RunRecord => {
     if (record.error) return record;
     // Reports from before stream-error detection: a run cut off by an error has no usage.
@@ -226,6 +226,13 @@ async function rescore(file: string) {
   console.log(`\nreport: ${outFile}`);
 }
 
+function toCorpus(pages: DocsPage[]): Corpus {
+  return {
+    text: pages.map((page) => page.content).join('\n'),
+    paths: new Set(pages.map((page) => page.url)),
+  };
+}
+
 /** Splits /llms-full.txt into pages and adds descriptions from /llms.txt. */
 async function loadPages(): Promise<DocsPage[]> {
   const [full, list] = await Promise.all(
@@ -236,9 +243,9 @@ async function loadPages(): Promise<DocsPage[]> {
     }),
   );
   const descriptions = new Map(
-    [...list.matchAll(/\[[^\]]+\]\((\/docs[^)]*)\): (.+)$/gm)].map((m) => [m[1], m[2]]),
+    [...list.matchAll(/\[[^\]]+\]\((\/[^)]*)\): (.+)$/gm)].map((m) => [m[1], m[2]]),
   );
-  const headings = [...full.matchAll(/^# (.+) \((\/docs[^)]*)\)$/gm)];
+  const headings = [...full.matchAll(/^# (.+) \((\/[^)]*)\)$/gm)];
   return headings.map((heading, i) => {
     const start = (heading.index ?? 0) + heading[0].length;
     const end = headings[i + 1]?.index ?? full.length;
