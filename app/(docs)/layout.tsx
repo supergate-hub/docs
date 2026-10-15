@@ -10,7 +10,7 @@ import { source } from '@/lib/source';
 // Without the chat wrapper, the header shows no Ask AI button.
 const DocsLayout = askAiEnabled ? AskAiLayout : SpaciousLayout;
 
-export default function Layout({ children }: LayoutProps<'/docs'>) {
+export default function Layout({ children }: LayoutProps<'/'>) {
   const tree = source.getPageTree();
   const tabs = getLayoutTabs(tree, {
     transform(option, node) {

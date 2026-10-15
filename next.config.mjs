@@ -11,7 +11,8 @@ const config = {
   // GitHub Pages serves this repository under /<repo>; the deploy workflow sets it.
   basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? '',
   images: { unoptimized: true },
-  // Emit dir/index.html so GitHub Pages resolves /docs and /docs/cloud alike.
+  // Emit dir/index.html so GitHub Pages resolves a section and its pages alike, such as /cloud
+  // and /cloud/quickstart.
   trailingSlash: true,
 };
 

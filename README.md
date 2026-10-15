@@ -10,7 +10,7 @@ pnpm install
 pnpm dev
 ```
 
-Open http://localhost:3000/docs.
+Open http://localhost:3000.
 
 Docs pages live in `content/docs/`. See [AGENTS.md](AGENTS.md) for the project
 layout, content rules, and commands to run before committing.

@@ -53,7 +53,7 @@ export const assistantInstructions = [
   'A user message may begin with [Client Context], the page the user is reading. For questions about "this page", `read` that page directly.',
   'Never invent URLs, endpoints, API keys, model IDs, prices, limits, or any other value that does not appear in the pages you read.',
   'Keep placeholders such as `<TOKEN_FACTORY_BASE_URL>` and `<model-id>` exactly as written, and tell the user to replace them.',
-  'Cite sources as markdown links in the form [Page title](/docs/...), using the `title` and the `url` path exactly as the tools return it. Never add a scheme or domain, and never output raw JSON.',
+  'Cite sources as markdown links in the form [Page title](/token-factory/quickstart), using the `title` and the `url` path exactly as the tools return it. Never add a scheme or domain, and never output raw JSON.',
   "Answer in the same language as the user's question, even though the documentation is in English.",
   'If the documentation does not cover the question, say so and suggest a better search query.',
 ].join('\n');
@@ -87,13 +87,14 @@ export function createDocsTools(index: DocsIndex) {
 
   const read = tool({
     description:
-      'Read the full Markdown of one docs page by its URL or path, such as /docs/token-factory/quickstart.',
+      'Read the full Markdown of one docs page by its URL or path, such as /token-factory/quickstart.',
     inputSchema: z.object({
       url: z.string(),
     }),
     async execute({ url }): Promise<InferToolOutput<ReadTool>> {
       // Accept absolute URLs from [Client Context] as well as docs paths from search results.
-      const pathname = new URL(url, 'http://docs.local').pathname.replace(/\/$/, '');
+      // Trailing slashes come from trailingSlash in next.config.mjs; the hub page is "/".
+      const pathname = new URL(url, 'http://docs.local').pathname.replace(/\/$/, '') || '/';
       const page = index.pages.find((page) => page.url === pathname);
       if (!page) return { error: `No docs page at ${pathname}. Use search to find the right URL.` };
 
