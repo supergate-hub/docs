@@ -1,0 +1,59 @@
+---
+title: Quickstart
+description: Create an API key and send your first chat completion request.
+---
+
+<Callout type="warn" title="Draft">
+  `<TOKEN_FACTORY_BASE_URL>` and `<model-id>` are placeholders.
+</Callout>
+
+## 1. Create an API key
+
+Create a key in the console and export it:
+
+```bash
+export TOKEN_FACTORY_API_KEY="<your-api-key>"
+```
+
+## 2. Send a request
+
+```python tab="Python" tab-group="lang"
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="<TOKEN_FACTORY_BASE_URL>",
+    api_key=os.environ["TOKEN_FACTORY_API_KEY"],
+)
+
+response = client.chat.completions.create(
+    model="<model-id>",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+print(response.choices[0].message.content)
+```
+
+```js tab="JavaScript"
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: '<TOKEN_FACTORY_BASE_URL>',
+  apiKey: process.env.TOKEN_FACTORY_API_KEY,
+});
+
+const response = await client.chat.completions.create({
+  model: '<model-id>',
+  messages: [{ role: 'user', content: 'Hello!' }],
+});
+console.log(response.choices[0].message.content);
+```
+
+```bash tab="cURL"
+curl <TOKEN_FACTORY_BASE_URL>/chat/completions \
+  -H "Authorization: Bearer $TOKEN_FACTORY_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<model-id>",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```

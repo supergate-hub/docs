@@ -1,0 +1,18 @@
+{
+  "title": "Cloud",
+  "description": "GPU infrastructure",
+  "icon": "Cloud",
+  "root": true,
+  "pages": [
+    "index",
+    "quickstart",
+    "---Infrastructure---",
+    "compute",
+    "storage",
+    "networking",
+    "---Management---",
+    "iam",
+    "---Developer tools---",
+    "cli"
+  ]
+}

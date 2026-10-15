@@ -1,0 +1,43 @@
+---
+title: Quickstart
+description: Create a GPU instance and connect to it over SSH.
+---
+
+<Callout type="warn" title="Draft">
+  The commands below are placeholders. Replace them with the real console steps and CLI syntax.
+</Callout>
+
+<Steps>
+<Step>
+
+### Sign in and choose a project
+
+Open the console and select the project that will own the instance.
+
+</Step>
+<Step>
+
+### Create an instance
+
+<Tabs groupId="interface" persist items={['Console', 'CLI']}>
+  <Tab value="Console">
+    Go to **Compute → Instances → Create instance**, choose an instance type and image, then select **Create**.
+  </Tab>
+  <Tab value="CLI">
+    ```bash
+    <cli> compute instance create --name my-instance --type <instance-type> --image <image-id>
+    ```
+  </Tab>
+</Tabs>
+
+</Step>
+<Step>
+
+### Connect over SSH
+
+```bash
+ssh <user>@<public-ip>
+```
+
+</Step>
+</Steps>
