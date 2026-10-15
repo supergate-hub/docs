@@ -7,14 +7,17 @@ import { source } from '@/lib/source';
 
 export default function Layout({ children }: LayoutProps<'/docs'>) {
   const tree = source.getPageTree();
-  // Color each product tab icon with that product's accent color.
   const tabs = getLayoutTabs(tree, {
     transform(option, node) {
+      // Unbind tabs from their folders so they match by URL instead. Folder-bound
+      // tabs only render inside a product, which hides the dropdown on the hub page.
+      const tab = { ...option, $folder: undefined };
       const product = getProduct(source.getNodeMeta(node)?.path.split('/')[0]);
-      if (!product || !node.icon) return option;
+      if (!product || !node.icon) return tab;
 
+      // Color each product tab icon with that product's accent color.
       return {
-        ...option,
+        ...tab,
         icon: <div style={{ color: `var(--product-${product}-color)` }}>{node.icon}</div>,
       };
     },

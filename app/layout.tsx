@@ -17,7 +17,14 @@ export default function Layout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={`${geist.variable} ${mono.variable}`} suppressHydrationWarning>
       <Body>
-        <RootProvider>{children}</RootProvider>
+        <RootProvider
+          i18n={{
+            // Shown in the product dropdown on pages outside any product, such as the hub.
+            translations: { 'Layout Tab(layout tab trigger)': 'Select a product' },
+          }}
+        >
+          {children}
+        </RootProvider>
       </Body>
     </html>
   );
