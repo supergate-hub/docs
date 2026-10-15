@@ -11,6 +11,9 @@ export const gitConfig = {
   branch: 'main',
 };
 
+/** Ask AI is a proof of concept, so it stays off unless ASK_AI_ENABLED=true (server-side only). */
+export const askAiEnabled = process.env.ASK_AI_ENABLED === 'true';
+
 const getContentUrl = createGetUrl(docsContentRoute);
 
 export function getPageMarkdownUrl(page: { slugs: string[]; locale?: string }) {

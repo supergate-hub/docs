@@ -40,7 +40,7 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `content/docs/` | All docs pages (MDX) and sidebar config (`meta.json`) |
 | `content/docs/index.mdx` | Docs hub that links to each product |
 | `lib/source.ts` | Content source, loader, and `llms.txt` rendering |
-| `lib/shared.ts` | App name, routes, and GitHub repo used by page links |
+| `lib/shared.ts` | App name, routes, GitHub repo used by page links, and the Ask AI flag |
 | `lib/layout.shared.tsx` | Nav options shared by layouts |
 | `components/mdx.tsx` | Components available in MDX without imports |
 | `app/docs/` | Docs layout and page route |
@@ -50,6 +50,28 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `proxy.ts` | Serves Markdown for `*.md` URLs and `Accept: text/markdown` |
 
 Do not edit generated output in `.source/` or `.next/`.
+
+## Ask AI (off by default)
+
+Ask AI is a proof of concept. It runs only when `ASK_AI_ENABLED=true`; otherwise the
+header has no Ask AI button and `/api/chat` returns 404. See `.env.example` for the
+OpenRouter settings it needs.
+
+| Path | Purpose |
+| --- | --- |
+| `lib/ai/assistant.ts` | Docs index, `search`/`read` tools, instructions, and model settings |
+| `app/api/chat/route.ts` | Chat endpoint; builds the index from the docs source |
+| `components/ai/` | Chat panel and layout wrapper |
+| `scripts/ask-ai-eval/` | Rule-based eval that compares the current setup with a baseline |
+
+- Keep `lib/ai/assistant.ts` free of Next.js and Fumadocs imports. The eval imports it
+  outside the app.
+- `components/ai/chat`, `components/codeblock.tsx`, `components/tabs`, `components/ui`,
+  and `lib/merge-refs.ts` come from the Fumadocs CLI. Biome lint skips them; prefer
+  updating them through the CLI over hand edits.
+- Run the eval with the dev server up: `pnpm eval:ask-ai`. Free OpenRouter models allow
+  50 requests a day, so use `--cases` to run a subset and `--rescore <report>` to
+  re-apply the checks without calling the model.
 
 ## Content rules
 

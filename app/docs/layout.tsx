@@ -1,9 +1,14 @@
 import { getLayoutTabs } from 'fumadocs-ui/layouts/shared';
-import { DocsLayout } from '@/components/ai/layout';
+import { DocsLayout as SpaciousLayout } from 'fumadocs-ui/layouts/spacious';
+import { DocsLayout as AskAiLayout } from '@/components/ai/layout';
 import { HeaderActions } from '@/components/header-actions';
 import { baseOptions } from '@/lib/layout.shared';
 import { getProduct } from '@/lib/product';
+import { askAiEnabled } from '@/lib/shared';
 import { source } from '@/lib/source';
+
+// Without the chat wrapper, the header shows no Ask AI button.
+const DocsLayout = askAiEnabled ? AskAiLayout : SpaciousLayout;
 
 export default function Layout({ children }: LayoutProps<'/docs'>) {
   const tree = source.getPageTree();
