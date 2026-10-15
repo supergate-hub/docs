@@ -33,6 +33,9 @@ CLAUDE.local.md
 # competitive analysis captures (third-party screenshots, never publish)
 /rea-captures/
 
+# Ask AI eval reports (model output, regenerate with pnpm eval:ask-ai)
+/scripts/ask-ai-eval/results/
+
 # others
 .vercel
 next-env.d.ts

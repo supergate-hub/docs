@@ -9,7 +9,8 @@
     "start": "next start",
     "types:check": "next typegen && tsc --noEmit",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "eval:ask-ai": "tsx scripts/ask-ai-eval/run.ts"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.145",
@@ -44,6 +45,7 @@
     "@types/react-dom": "^19.3.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
 }
