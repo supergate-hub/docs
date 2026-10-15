@@ -44,5 +44,19 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "components/ai/chat/**",
+        "components/codeblock.tsx",
+        "components/tabs/**",
+        "components/ui/**",
+        "lib/merge-refs.ts"
+      ],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
 }

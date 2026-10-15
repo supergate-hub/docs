@@ -1,5 +1,5 @@
 import { getLayoutTabs } from 'fumadocs-ui/layouts/shared';
-import { DocsLayout } from 'fumadocs-ui/layouts/spacious';
+import { DocsLayout } from '@/components/ai/layout';
 import { HeaderActions } from '@/components/header-actions';
 import { baseOptions } from '@/lib/layout.shared';
 import { getProduct } from '@/lib/product';

@@ -5,7 +5,7 @@ import { buttonVariants } from 'fumadocs-ui/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from 'fumadocs-ui/components/ui/popover';
 import { ThemeSwitch } from 'fumadocs-ui/layouts/shared/slots/theme-switch';
 import { useSpaciousLayout } from 'fumadocs-ui/layouts/spacious';
-import { SunMoon } from 'lucide-react';
+import { MessageCircle, SunMoon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -16,13 +16,29 @@ const iconButton = cn(
 
 // Replaces Spacious's options (kebab) menu with a theme button that opens the theme switch.
 export function HeaderActions({ className, ...props }: ComponentProps<'div'>) {
-  const { menuItems } = useSpaciousLayout();
+  const {
+    menuItems,
+    props: { aiChat },
+  } = useSpaciousLayout();
 
   return (
     <div
       className={cn('flex items-center gap-1 rounded-lg bg-fd-background', className)}
       {...props}
     >
+      {aiChat && !aiChat.open && (
+        <button
+          type="button"
+          className={cn(
+            buttonVariants({ variant: 'ghost' }),
+            'h-7.5 gap-1.5 px-2 text-fd-muted-foreground',
+          )}
+          onClick={() => aiChat.onOpenChange(true)}
+        >
+          <MessageCircle className="size-4" />
+          Ask AI
+        </button>
+      )}
       {menuItems.map(
         (item) =>
           item.type === 'icon' && (
