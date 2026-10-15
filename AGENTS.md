@@ -15,7 +15,8 @@ Public documentation site for Supergate's three products, built with
 | Bio Pipeline | `content/docs/bio/` | `/docs/bio` |
 
 The marketing landing site is a separate project. This app only serves docs, and
-`/` redirects to `/docs`.
+`/` redirects to `/docs`. The site is a static export published to GitHub Pages; see
+[Deployment](#deployment).
 
 **This repository is public.** Everything committed here is visible to anyone.
 
@@ -28,7 +29,8 @@ pnpm install
 pnpm dev            # http://localhost:3000
 pnpm lint           # Biome lint and format check
 pnpm types:check    # next typegen + tsc
-pnpm build
+pnpm build          # static export to out/
+pnpm start          # serve out/ locally
 ```
 
 Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
@@ -40,22 +42,38 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `content/docs/` | All docs pages (MDX) and sidebar config (`meta.json`) |
 | `content/docs/index.mdx` | Docs hub that links to each product |
 | `lib/source.ts` | Content source, loader, and `llms.txt` rendering |
-| `lib/shared.ts` | App name, routes, GitHub repo used by page links, and the Ask AI flag |
+| `lib/shared.ts` | App name, routes, base path, GitHub repo used by page links, and the Ask AI flag |
 | `lib/layout.shared.tsx` | Nav options shared by layouts |
 | `components/mdx.tsx` | Components available in MDX without imports |
+| `components/search-dialog.tsx` | Search dialog that queries the exported index in the browser |
+| `app/page.tsx` | Root page that refreshes to `/docs` |
 | `app/docs/` | Docs layout and page route |
-| `app/api/search/` | Search endpoint (Orama, built at build time) |
+| `app/api/search/` | Search index, exported at build time |
 | `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents |
 | `app/og/` | Generated Open Graph images |
-| `proxy.ts` | Serves Markdown for `*.md` URLs and `Accept: text/markdown` |
+| `.github/workflows/pages.yml` | Builds every pull request; builds and deploys `main` to GitHub Pages |
 
-Do not edit generated output in `.source/` or `.next/`.
+Do not edit generated output in `.source/`, `.next/`, or `out/`.
+
+## Deployment
+
+`main` deploys to GitHub Pages through `.github/workflows/pages.yml`. Pull requests run
+the same lint and build without deploying.
+
+- **Static only.** `next.config.mjs` sets `output: 'export'`, so nothing runs at request
+  time: no middleware, no `redirects()`, and no route handlers other than static `GET`.
+- **Base path.** On `github.io` the site lives under `/docs`, so docs pages are at
+  `/docs/docs/...`. The workflow passes it as `NEXT_PUBLIC_BASE_PATH`. Next.js adds it
+  to `<Link>` and assets; prefix `basePath` from `lib/shared.ts` yourself for URLs that
+  code fetches directly.
+- **Custom domain.** Set it in the repository's Pages settings. `configure-pages` then
+  reports an empty base path, and no code change is needed.
 
 ## Ask AI (off by default)
 
-Ask AI is a proof of concept. It runs only when `ASK_AI_ENABLED=true`; otherwise the
-header has no Ask AI button and `/api/chat` returns 404. See `.env.example` for the
-OpenRouter settings it needs.
+Ask AI is a proof of concept. It runs only when `ASK_AI_ENABLED=true` under `pnpm dev`;
+otherwise the header has no Ask AI button and `/api/chat` returns 404. It cannot run on
+GitHub Pages, which has no server. See `.env.example` for the OpenRouter settings it needs.
 
 | Path | Purpose |
 | --- | --- |

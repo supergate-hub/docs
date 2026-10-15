@@ -1,6 +1,8 @@
 import { createGetUrl } from 'fumadocs-core/source';
 
 export const appName = 'Supergate Docs';
+/** Prefix for URLs that Next.js does not rewrite itself, such as fetch() targets. */
+export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
