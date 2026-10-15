@@ -8,6 +8,11 @@
   --default-mono-font-family: var(--font-mono);
 }
 
+@theme {
+  /* Supergate CI blue, as the CMYK logo renders on screen. */
+  --color-brand: #2e459a;
+}
+
 /* Accent color per product. app/layout.client.tsx adds the class to <body>. */
 :root {
   --product-cloud-color: hsl(217, 100%, 58%);
