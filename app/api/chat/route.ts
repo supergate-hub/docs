@@ -3,10 +3,11 @@ import { createUIMessageStreamResponse, toUIMessageStream } from 'ai';
 import {
   createDocsIndex,
   type DocsIndex,
+  resolveModels,
   streamDocsAnswer,
   toModelMessages,
 } from '@/lib/ai/assistant';
-import { askAiEnabled } from '@/lib/shared';
+import { askAiEnabled, basePath } from '@/lib/shared';
 import { source } from '@/lib/source';
 
 let docsIndex: Promise<DocsIndex> | undefined;
@@ -20,7 +21,7 @@ async function loadDocsIndex() {
       content: await page.data.getText('processed'),
     })),
   );
-  return createDocsIndex(pages);
+  return createDocsIndex(pages, { basePath });
 }
 
 async function chunkedAll<O>(promises: Promise<O>[]): Promise<O[]> {
@@ -35,16 +36,7 @@ async function chunkedAll<O>(promises: Promise<O>[]): Promise<O[]> {
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
-
-// Comma-separated OpenRouter model IDs that support tool calling. OpenRouter tries the next
-// one when a model is down or rate-limited, which happens often with free models.
-const [primaryModel, ...fallbackModels] = (
-  process.env.OPENROUTER_MODEL ??
-  'google/gemma-4-31b-it:free,nvidia/nemotron-3-super-120b-a12b:free,poolside/laguna-s-2.1:free'
-)
-  .split(',')
-  .map((id) => id.trim())
-  .filter(Boolean);
+const models = resolveModels(process.env.OPENROUTER_MODEL);
 
 export async function POST(req: Request) {
   if (!askAiEnabled) return new Response('Not Found', { status: 404 });
@@ -53,7 +45,7 @@ export async function POST(req: Request) {
   docsIndex ??= loadDocsIndex();
 
   const result = streamDocsAnswer({
-    model: openrouter.chat(primaryModel, { models: fallbackModels }),
+    model: openrouter.chat(models.primary, { models: models.fallbacks }),
     index: await docsIndex,
     messages: await toModelMessages(reqJson.messages ?? []),
   });

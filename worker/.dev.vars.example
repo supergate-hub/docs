@@ -1,0 +1,6 @@
+# Copy to worker/.dev.vars for `pnpm worker:dev`. Never commit real keys.
+OPENROUTER_API_KEY=
+# Local sites that may call the Worker: the Next dev server and a served static export.
+ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:4173
+# The static export served under /docs, as on github.io. Use an empty value for `pnpm dev`.
+DOCS_BASE_PATH=/docs

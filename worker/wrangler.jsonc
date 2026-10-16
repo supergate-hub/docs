@@ -1,0 +1,27 @@
+// Ask AI chat endpoint for the static docs site. See AGENTS.md (Ask AI) for local development.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "docs-ask-ai",
+  "main": "src/index.ts",
+  // Ops@supergate.cc's Account. An identifier, not a secret; it keeps deploys off personal accounts.
+  "account_id": "af4a75f8b1d22848f786b49b1aa1571a",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "vars": {
+    // Comma-separated origins allowed to call the Worker from a browser.
+    "ALLOWED_ORIGINS": "https://supergate-hub.github.io",
+    // Path the docs are served under; empty once the docs move to their own domain.
+    "DOCS_BASE_PATH": "/docs",
+    // Comma-separated OpenRouter models, tried in order. Empty uses the default list.
+    "OPENROUTER_MODEL": ""
+  },
+  // 10 chat requests per minute per client IP, counted per Cloudflare location.
+  "ratelimits": [
+    {
+      "name": "CHAT_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 }
+    }
+  ]
+}
