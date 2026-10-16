@@ -6,6 +6,7 @@ import {
   stepCountIs,
   streamText,
   tool,
+  type UIMessageChunk,
 } from 'ai';
 import { Document, type DocumentData } from 'flexsearch';
 import { z } from 'zod';
@@ -85,6 +86,24 @@ export function createDocsIndex(pages: DocsPage[], { basePath = '' } = {}): Docs
   };
 }
 
+/**
+ * Finds the page a URL or path points to. Browser URLs include the base path, trailing slashes
+ * come from trailingSlash in next.config.mjs, and the hub page is "/".
+ */
+export function findPage(index: DocsIndex, url: string): DocsPage | undefined {
+  let pathname: string;
+  try {
+    pathname = new URL(url, 'http://docs.local').pathname;
+  } catch {
+    return undefined;
+  }
+  const { basePath } = index;
+  if (basePath && (pathname === basePath || pathname.startsWith(`${basePath}/`)))
+    pathname = pathname.slice(basePath.length);
+  pathname = pathname.replace(/\/$/, '') || '/';
+  return index.pages.find((page) => page.url === pathname);
+}
+
 export const assistantInstructions = [
   'You are the AI assistant for the Supergate documentation site, which covers Cloud (GPU IaaS), Token Factory (OpenAI-compatible inference API), and Bio Pipeline.',
   'Answer only from the documentation. Use `search` to find relevant pages, then `read` the one or two most relevant pages before answering.',
@@ -130,16 +149,9 @@ export function createDocsTools(index: DocsIndex) {
       url: z.string(),
     }),
     async execute({ url }): Promise<InferToolOutput<ReadTool>> {
-      // Accept absolute URLs from [Client Context] as well as docs paths from search results.
-      // Browser URLs include the base path; trailing slashes come from trailingSlash in
-      // next.config.mjs; the hub page is "/".
-      let pathname = new URL(url, 'http://docs.local').pathname;
-      const { basePath } = index;
-      if (basePath && (pathname === basePath || pathname.startsWith(`${basePath}/`)))
-        pathname = pathname.slice(basePath.length);
-      pathname = pathname.replace(/\/$/, '') || '/';
-      const page = index.pages.find((page) => page.url === pathname);
-      if (!page) return { error: `No docs page at ${pathname}. Use search to find the right URL.` };
+      // Accepts absolute URLs from [Client Context] as well as docs paths from search results.
+      const page = findPage(index, url);
+      if (!page) return { error: `No docs page at ${url}. Use search to find the right URL.` };
 
       return {
         url: page.url,
@@ -167,6 +179,78 @@ function snippetOf(content: string, query: string): string {
     .slice(start, start + 300)
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+const CITATION = /【([^】]*)】/g;
+/** Longest text held after an unclosed 【 before it is sent as plain text. */
+const MAX_CITATION_CHARS = 500;
+
+/**
+ * Some models cite sources in lenticular brackets, such as 【/cloud/quickstart】 or
+ * 【{"url":"/cloud/quickstart","title":"Quickstart"}】, whatever the instructions say. Turns each
+ * into a markdown link to the page it names and drops citations that name no page. `before` is
+ * the character preceding `text`, so a link is not glued to the previous word.
+ */
+export function rewriteCitations(text: string, index: DocsIndex, before = ''): string {
+  return text.replace(CITATION, (_match, inner: string, offset: number) => {
+    const page = citedPage(inner, index);
+    if (!page) return '';
+    const previous = offset > 0 ? text[offset - 1] : before;
+    const space = previous && !/\s/.test(previous) ? ' ' : '';
+    return `${space}[${page.title}](${page.url})`;
+  });
+}
+
+function citedPage(inner: string, index: DocsIndex): DocsPage | undefined {
+  const value = inner.trim();
+  if (value.startsWith('{')) {
+    try {
+      const cited = JSON.parse(value) as { url?: unknown; id?: unknown; doc?: { url?: unknown } };
+      const url = [cited.url, cited.doc?.url, cited.id].find((v) => typeof v === 'string');
+      return typeof url === 'string' ? findPage(index, url) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  const url = value.match(/https?:\/\/\S+|\/\S*/)?.[0];
+  return url ? findPage(index, url) : undefined;
+}
+
+/**
+ * Applies rewriteCitations to the text of a UI message stream. A citation can span several
+ * deltas, so text from an unclosed 【 is held until its 】 arrives or the text part ends.
+ */
+export function citationLinks(index: DocsIndex): TransformStream<UIMessageChunk, UIMessageChunk> {
+  const held = new Map<string, string>();
+  const lastChar = new Map<string, string>();
+
+  return new TransformStream({
+    transform(chunk, controller) {
+      if (chunk.type === 'text-delta') {
+        let text = (held.get(chunk.id) ?? '') + chunk.delta;
+        held.delete(chunk.id);
+        const open = text.lastIndexOf('【');
+        if (open !== -1 && !text.includes('】', open) && text.length - open <= MAX_CITATION_CHARS) {
+          held.set(chunk.id, text.slice(open));
+          text = text.slice(0, open);
+        }
+        const delta = rewriteCitations(text, index, lastChar.get(chunk.id));
+        if (delta) {
+          lastChar.set(chunk.id, delta.slice(-1));
+          controller.enqueue({ ...chunk, delta });
+        }
+        return;
+      }
+      if (chunk.type === 'text-end') {
+        // An unclosed 【 is not a citation; send it as written.
+        const rest = held.get(chunk.id);
+        if (rest) controller.enqueue({ type: 'text-delta', id: chunk.id, delta: rest });
+        held.delete(chunk.id);
+        lastChar.delete(chunk.id);
+      }
+      controller.enqueue(chunk);
+    },
+  });
 }
 
 /** Converts chat UI messages, turning the page the user is reading into a text prefix. */

@@ -19,6 +19,7 @@ import {
   type DocsIndex,
   type DocsPage,
   parseLlmsText,
+  rewriteCitations,
   streamDocsAnswer,
   toModelMessages,
 } from '../../lib/ai/assistant';
@@ -166,11 +167,13 @@ async function runOnce({
       for await (const part of result.fullStream) {
         if (part.type === 'error') throw part.error;
       }
-      const [answer, steps, usage] = await Promise.all([
+      const [text, steps, usage] = await Promise.all([
         result.text,
         result.steps,
         result.totalUsage,
       ]);
+      // The chat endpoints rewrite bracket citations on the way out; score what users see.
+      const answer = variant === 'current' ? rewriteCitations(text, index) : text;
       return {
         caseId: evalCase.id,
         variant,

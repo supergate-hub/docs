@@ -1,6 +1,7 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createUIMessageStreamResponse, toUIMessageStream } from 'ai';
 import {
+  citationLinks,
   createDocsIndex,
   type DocsIndex,
   resolveModels,
@@ -43,14 +44,15 @@ export async function POST(req: Request) {
 
   const reqJson = await req.json();
   docsIndex ??= loadDocsIndex();
+  const index = await docsIndex;
 
   const result = streamDocsAnswer({
     model: openrouter.chat(models.primary, { models: models.fallbacks }),
-    index: await docsIndex,
+    index,
     messages: await toModelMessages(reqJson.messages ?? []),
   });
 
   return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream }),
+    stream: toUIMessageStream({ stream: result.stream }).pipeThrough(citationLinks(index)),
   });
 }
