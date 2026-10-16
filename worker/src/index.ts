@@ -2,7 +2,6 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createUIMessageStreamResponse, toUIMessageStream } from 'ai';
 import {
   createDocsIndex,
-  type DocsPage,
   resolveModels,
   streamDocsAnswer,
   toModelMessages,
@@ -52,7 +51,7 @@ export default {
     if (messages.length > MAX_MESSAGES)
       return text(413, 'This conversation is too long. Start a new chat.', cors);
 
-    docsIndex ??= createDocsIndex(pages as DocsPage[], { basePath: env.DOCS_BASE_PATH });
+    docsIndex ??= createDocsIndex(pages, { basePath: env.DOCS_BASE_PATH });
     const models = resolveModels(env.OPENROUTER_MODEL);
     const openrouter = createOpenRouter({ apiKey: env.OPENROUTER_API_KEY });
 
