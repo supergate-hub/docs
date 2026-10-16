@@ -50,14 +50,15 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `app/api/search/` | Search index, exported at build time |
 | `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents |
 | `app/og/` | Generated Open Graph images |
-| `.github/workflows/pages.yml` | Builds every pull request; builds and deploys `main` to GitHub Pages |
+| `.github/workflows/pages.yml` | Checks every pull request; deploys `main` to GitHub Pages and the Ask AI Worker |
 
 Do not edit generated output in `.source/`, `.next/`, or `out/`.
 
 ## Deployment
 
-`main` deploys to GitHub Pages through `.github/workflows/pages.yml`. Pull requests run
-the same lint and build without deploying.
+`main` deploys through `.github/workflows/pages.yml`: the static site to GitHub Pages and
+the Ask AI Worker to Cloudflare. Pull requests run the same lint, type checks, build, and a
+Worker bundle check (`wrangler deploy --dry-run`) without deploying.
 
 - **Static only.** `next.config.mjs` sets `output: 'export'`, so nothing runs at request
   time: no middleware, no `redirects()`, and no route handlers other than static `GET`.
@@ -67,7 +68,15 @@ the same lint and build without deploying.
   to `<Link>` and assets; prefix `basePath` from `lib/shared.ts` yourself for URLs that
   code fetches directly.
 - **Custom domain.** Set it in the repository's Pages settings. `configure-pages` then
-  reports an empty base path, and no code change is needed.
+  reports an empty base path, and no code change is needed. Update `ALLOWED_ORIGINS` and
+  `DOCS_BASE_PATH` in `worker/wrangler.jsonc` to match.
+- **Worker.** The `deploy-worker` job uses the `production` environment, which only `main`
+  may use. It reads `CLOUDFLARE_API_TOKEN` and `OPENROUTER_API_KEY` from that environment's
+  secrets and `CLOUDFLARE_ACCOUNT_ID` from its variables, and uploads the OpenRouter key as
+  a Worker secret with each version.
+- **Turning Ask AI on.** Set the repository variables `ASK_AI_ENABLED=true` and
+  `CHAT_API_URL` (the Worker's `/api/chat` URL). Until then the deployed site has no Ask AI
+  button, even though the Worker is deployed. Add bot protection first; see issue #1.
 
 ## Ask AI (off by default)
 
