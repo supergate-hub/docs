@@ -50,14 +50,15 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `app/api/search/` | Search index, exported at build time |
 | `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents |
 | `app/og/` | Generated Open Graph images |
-| `.github/workflows/pages.yml` | Builds every pull request; builds and deploys `main` to GitHub Pages |
+| `.github/workflows/pages.yml` | Checks every pull request; deploys `main` to GitHub Pages and the Ask AI Worker |
 
 Do not edit generated output in `.source/`, `.next/`, or `out/`.
 
 ## Deployment
 
-`main` deploys to GitHub Pages through `.github/workflows/pages.yml`. Pull requests run
-the same lint and build without deploying.
+`main` deploys through `.github/workflows/pages.yml`: the static site to GitHub Pages and
+the Ask AI Worker to Cloudflare. Pull requests run the same lint, type checks, build, and a
+Worker bundle check (`wrangler deploy --dry-run`) without deploying.
 
 - **Static only.** `next.config.mjs` sets `output: 'export'`, so nothing runs at request
   time: no middleware, no `redirects()`, and no route handlers other than static `GET`.
@@ -67,29 +68,60 @@ the same lint and build without deploying.
   to `<Link>` and assets; prefix `basePath` from `lib/shared.ts` yourself for URLs that
   code fetches directly.
 - **Custom domain.** Set it in the repository's Pages settings. `configure-pages` then
-  reports an empty base path, and no code change is needed.
+  reports an empty base path, and no code change is needed. Update `ALLOWED_ORIGINS` and
+  `DOCS_BASE_PATH` in `worker/wrangler.jsonc` to match.
+- **Worker.** The `deploy-worker` job uses the `production` environment, which only `main`
+  may use. It reads `CLOUDFLARE_API_TOKEN` and `OPENROUTER_API_KEY` from that environment's
+  secrets and `CLOUDFLARE_ACCOUNT_ID` from its variables, and uploads the OpenRouter key as
+  a Worker secret with each version.
+- **Turning Ask AI on.** Set the repository variables `ASK_AI_ENABLED=true` and
+  `CHAT_API_URL` (the Worker's `/api/chat` URL). Until then the deployed site has no Ask AI
+  button, even though the Worker is deployed. Add bot protection first; see issue #1.
 
 ## Ask AI (off by default)
 
-Ask AI is a proof of concept. It runs only when `ASK_AI_ENABLED=true` under `pnpm dev`;
-otherwise the header has no Ask AI button and `/api/chat` returns 404. It cannot run on
-GitHub Pages, which has no server. See `.env.example` for the OpenRouter settings it needs.
+Ask AI is a proof of concept and stays off unless `ASK_AI_ENABLED=true` at build or dev
+time; otherwise the header has no Ask AI button. GitHub Pages has no server, so the
+deployed chat endpoint is a Cloudflare Worker in `worker/`. The Next.js route
+`/api/chat` serves the same logic under `pnpm dev` and returns 404 when the flag is off.
 
 | Path | Purpose |
 | --- | --- |
-| `lib/ai/assistant.ts` | Docs index, `search`/`read` tools, instructions, and model settings |
-| `app/api/chat/route.ts` | Chat endpoint; builds the index from the docs source |
+| `lib/ai/assistant.ts` | Docs index, `search`/`read` tools, instructions, model list, and `llms*.txt` parsing |
+| `lib/ai/types.ts` | Chat message and tool types shared by the panel, the route, and the Worker |
+| `app/api/chat/route.ts` | Chat endpoint for `pnpm dev`; builds the index from the docs source |
+| `worker/` | Chat endpoint for the static site (Cloudflare Worker, `wrangler.jsonc`) |
+| `scripts/build-worker-docs.ts` | Writes the docs the Worker bundles, from `out/llms*.txt` |
 | `components/ai/` | Chat panel and layout wrapper |
 | `scripts/ask-ai-eval/` | Rule-based eval that compares the current setup with a baseline |
 
-- Keep `lib/ai/assistant.ts` free of Next.js and Fumadocs imports. The eval imports it
-  outside the app.
+- Keep `lib/ai/assistant.ts` and `lib/ai/types.ts` free of Next.js, Fumadocs, and React
+  imports. The Worker and the eval import them outside the app.
 - `components/ai/chat`, `components/codeblock.tsx`, `components/tabs`, `components/ui`,
   and `lib/merge-refs.ts` come from the Fumadocs CLI. Biome lint skips them; prefer
   updating them through the CLI over hand edits.
 - Run the eval with the dev server up: `pnpm eval:ask-ai`. Free OpenRouter models allow
   50 requests a day, so use `--cases` to run a subset and `--rescore <report>` to
   re-apply the checks without calling the model.
+
+### Worker
+
+The Worker allows only the origins in `ALLOWED_ORIGINS`, limits each client IP to 10
+requests a minute, and rejects bodies over 64 KB or conversations over 20 messages. It
+bundles the docs at deploy time instead of fetching them per request, to stay within the
+free plan's CPU limit.
+
+```bash
+cp worker/.dev.vars.example worker/.dev.vars   # then fill in OPENROUTER_API_KEY
+pnpm build && pnpm worker:docs                 # bundle the docs from out/
+pnpm worker:dev                                # http://localhost:8787/api/chat
+```
+
+To try it from the static site, build with `ASK_AI_ENABLED=true` and
+`NEXT_PUBLIC_CHAT_API_URL=http://localhost:8787/api/chat`, then serve `out/` under the
+base path set in `DOCS_BASE_PATH`. `wrangler.jsonc` pins the Ops account, so log in with
+an account that is a member of it. In production the OpenRouter key is a Worker secret,
+never a build variable.
 
 ## Content rules
 

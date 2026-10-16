@@ -14,14 +14,15 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import type { LanguageModel, ModelMessage } from 'ai';
-import type { ChatUIMessage } from '../../components/ai/search';
 import {
   createDocsIndex,
   type DocsIndex,
   type DocsPage,
+  parseLlmsText,
   streamDocsAnswer,
   toModelMessages,
 } from '../../lib/ai/assistant';
+import type { ChatUIMessage } from '../../lib/ai/types';
 import { streamBaselineAnswer } from './baseline';
 import { cases, type EvalCase } from './cases';
 import { type CheckResult, type Corpus, runChecks } from './checks';
@@ -233,7 +234,7 @@ function toCorpus(pages: DocsPage[]): Corpus {
   };
 }
 
-/** Splits /llms-full.txt into pages and adds descriptions from /llms.txt. */
+/** Loads the docs the same way the Worker gets them: from llms-full.txt and llms.txt. */
 async function loadPages(): Promise<DocsPage[]> {
   const [full, list] = await Promise.all(
     ['/llms-full.txt', '/llms.txt'].map(async (path) => {
@@ -242,20 +243,7 @@ async function loadPages(): Promise<DocsPage[]> {
       return res.text();
     }),
   );
-  const descriptions = new Map(
-    [...list.matchAll(/\[[^\]]+\]\((\/[^)]*)\): (.+)$/gm)].map((m) => [m[1], m[2]]),
-  );
-  const headings = [...full.matchAll(/^# (.+) \((\/[^)]*)\)$/gm)];
-  return headings.map((heading, i) => {
-    const start = (heading.index ?? 0) + heading[0].length;
-    const end = headings[i + 1]?.index ?? full.length;
-    return {
-      url: heading[2],
-      title: heading[1],
-      description: descriptions.get(heading[2]) ?? '',
-      content: full.slice(start, end).trim(),
-    };
-  });
+  return parseLlmsText(full, list);
 }
 
 async function remainingFreeRequests(apiKey: string): Promise<number | undefined> {

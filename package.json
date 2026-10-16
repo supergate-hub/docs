@@ -7,10 +7,12 @@
     "build": "next build",
     "dev": "next dev",
     "start": "serve out",
-    "types:check": "next typegen && tsc --noEmit",
+    "types:check": "next typegen && tsc --noEmit && tsc -p worker --noEmit",
     "lint": "biome check",
     "format": "biome format --write",
-    "eval:ask-ai": "tsx scripts/ask-ai-eval/run.ts"
+    "eval:ask-ai": "tsx scripts/ask-ai-eval/run.ts",
+    "worker:docs": "tsx scripts/build-worker-docs.ts",
+    "worker:dev": "wrangler dev --config worker/wrangler.jsonc"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.145",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
+    "@cloudflare/workers-types": "^4.20260702.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/hast": "^3.0.5",
     "@types/mdx": "^2.0.14",
@@ -47,6 +50,7 @@
     "serve": "^14.2.6",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "wrangler": "^4.151.0"
   }
 }

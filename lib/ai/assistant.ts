@@ -9,10 +9,11 @@ import {
 } from 'ai';
 import { Document, type DocumentData } from 'flexsearch';
 import { z } from 'zod';
-import type { ChatUIMessage, ReadTool, SearchTool } from '@/components/ai/search';
+import type { ChatUIMessage, ReadTool, SearchTool } from './types';
 
-// Ask AI logic shared by app/api/chat/route.ts and scripts/ask-ai-eval. Keep this module free of
-// Next.js and Fumadocs imports so the eval can run it outside the app.
+// Ask AI logic shared by app/api/chat/route.ts, the Cloudflare Worker in worker/, and
+// scripts/ask-ai-eval. Keep this module free of Next.js and Fumadocs imports so it runs outside
+// the app.
 
 export interface DocsPage {
   url: string;
@@ -21,14 +22,50 @@ export interface DocsPage {
   content: string;
 }
 
+/** Splits llms-full.txt into pages and adds the descriptions listed in llms.txt. */
+export function parseLlmsText(full: string, list: string): DocsPage[] {
+  const descriptions = new Map(
+    [...list.matchAll(/\[[^\]]+\]\((\/[^)]*)\): (.+)$/gm)].map((m) => [m[1], m[2]]),
+  );
+  const headings = [...full.matchAll(/^# (.+) \((\/[^)]*)\)$/gm)];
+  return headings.map((heading, i) => {
+    const start = (heading.index ?? 0) + heading[0].length;
+    const end = headings[i + 1]?.index ?? full.length;
+    return {
+      url: heading[2],
+      title: heading[1],
+      description: descriptions.get(heading[2]) ?? '',
+      content: full.slice(start, end).trim(),
+    };
+  });
+}
+
+const DEFAULT_MODELS =
+  'google/gemma-4-31b-it:free,nvidia/nemotron-3-super-120b-a12b:free,poolside/laguna-s-2.1:free';
+
+/**
+ * Reads a comma-separated list of OpenRouter models that support tool calling. OpenRouter tries
+ * the fallbacks in order when a model is down or rate-limited, which happens often with free
+ * models.
+ */
+export function resolveModels(value: string | undefined) {
+  const [primary, ...fallbacks] = (value || DEFAULT_MODELS)
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+  return { primary, fallbacks };
+}
+
 type IndexedPage = DocsPage & DocumentData;
 
 export interface DocsIndex {
   pages: DocsPage[];
+  /** Path prefix the site is served under, such as /docs on github.io; empty at a domain root. */
+  basePath: string;
   search: (query: string, options: { limit: number; suggest?: boolean }) => Promise<DocsPage[]>;
 }
 
-export function createDocsIndex(pages: DocsPage[]): DocsIndex {
+export function createDocsIndex(pages: DocsPage[], { basePath = '' } = {}): DocsIndex {
   const index = new Document<IndexedPage>({
     document: {
       id: 'url',
@@ -40,6 +77,7 @@ export function createDocsIndex(pages: DocsPage[]): DocsIndex {
 
   return {
     pages,
+    basePath: basePath.replace(/\/$/, ''),
     async search(query, { limit, suggest = false }) {
       const results = await index.searchAsync(query, { limit, suggest, merge: true, enrich: true });
       return results.flatMap(({ doc }) => (doc ? [doc] : []));
@@ -93,8 +131,13 @@ export function createDocsTools(index: DocsIndex) {
     }),
     async execute({ url }): Promise<InferToolOutput<ReadTool>> {
       // Accept absolute URLs from [Client Context] as well as docs paths from search results.
-      // Trailing slashes come from trailingSlash in next.config.mjs; the hub page is "/".
-      const pathname = new URL(url, 'http://docs.local').pathname.replace(/\/$/, '') || '/';
+      // Browser URLs include the base path; trailing slashes come from trailingSlash in
+      // next.config.mjs; the hub page is "/".
+      let pathname = new URL(url, 'http://docs.local').pathname;
+      const { basePath } = index;
+      if (basePath && (pathname === basePath || pathname.startsWith(`${basePath}/`)))
+        pathname = pathname.slice(basePath.length);
+      pathname = pathname.replace(/\/$/, '') || '/';
       const page = index.pages.find((page) => page.url === pathname);
       if (!page) return { error: `No docs page at ${pathname}. Use search to find the right URL.` };
 
