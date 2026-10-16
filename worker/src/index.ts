@@ -1,6 +1,7 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createUIMessageStreamResponse, toUIMessageStream } from 'ai';
 import {
+  citationLinks,
   createDocsIndex,
   resolveModels,
   streamDocsAnswer,
@@ -62,7 +63,7 @@ export default {
     });
 
     return createUIMessageStreamResponse({
-      stream: toUIMessageStream({ stream: result.stream }),
+      stream: toUIMessageStream({ stream: result.stream }).pipeThrough(citationLinks(docsIndex)),
       headers: cors,
     });
   },
