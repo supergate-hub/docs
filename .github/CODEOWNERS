@@ -1,0 +1,5 @@
+# Default owners. Reviews are requested automatically but not required.
+* @supergate-hub/platform
+
+# Product content owners, once product teams exist:
+# /content/docs/cloud/  @supergate-hub/<cloud-team>

@@ -162,6 +162,8 @@ never a build variable.
 - Never commit competitive analysis or screenshots of third-party sites.
   `rea-captures/` is ignored for this reason.
 - Keep `.env*` files out of Git. Commit only `.env.example` if one is needed.
+- Content in `content/` is published under CC BY 4.0 and code under Apache-2.0. Do not
+  paste text from other sources unless its license allows that.
 
 ## Git
 

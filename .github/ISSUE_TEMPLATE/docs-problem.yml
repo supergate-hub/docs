@@ -1,0 +1,20 @@
+name: Report a docs problem
+description: Something on a docs page is wrong, unclear, or missing.
+labels: [documentation]
+body:
+  - type: markdown
+    attributes:
+      value: For questions about your account or workloads, email ops@supergate.cc instead.
+  - type: input
+    id: page
+    attributes:
+      label: Page URL
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong?
+      description: Quote the text if you can, and say what you expected.
+    validations:
+      required: true
