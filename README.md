@@ -17,4 +17,8 @@ layout, content rules, and commands to run before committing.
 
 ## License
 
-[Apache License 2.0](LICENSE)
+Code is licensed under the [Apache License 2.0](LICENSE). Documentation content in
+`content/` is licensed under [CC BY 4.0](LICENSE-docs).
+
+Supergate and the Supergate logo are trademarks of Supergate Inc. Neither license
+grants permission to use them.
