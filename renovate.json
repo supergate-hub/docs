@@ -1,0 +1,76 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":configMigration",
+    "security:minimumReleaseAgeNpm"
+  ],
+  "enabledManagers": ["npm", "github-actions"],
+  "timezone": "Asia/Seoul",
+  "schedule": ["after 9am and before 3pm on monday"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "automerge": false,
+  "labels": ["dependencies"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["after 9am and before 3pm on monday"]
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["dependencies", "security"]
+  },
+  "osvVulnerabilityAlerts": true,
+  "packageRules": [
+    {
+      "description": "Require dashboard approval before creating major update PRs.",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Group runtime dependency minor and patch updates.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "runtime dependencies"
+    },
+    {
+      "description": "Group development dependency minor and patch updates.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "development dependencies"
+    },
+    {
+      "description": "fumadocs-ui (an alias of @fumadocs/base-ui) must match fumadocs-core exactly, so Fumadocs moves as one unit. Must follow the npm group rules.",
+      "matchPackageNames": ["fumadocs-*", "@fumadocs/*"],
+      "groupName": "Fumadocs"
+    },
+    {
+      "description": "@ai-sdk/react and the OpenRouter provider track the ai package's provider spec, so the AI SDK moves as one unit. Must follow the npm group rules.",
+      "matchPackageNames": ["ai", "@ai-sdk/*", "@openrouter/ai-sdk-provider"],
+      "groupName": "AI SDK"
+    },
+    {
+      "description": "Group GitHub Actions minor, patch, pin, and digest updates.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest", "pinDigest"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Workflow action majors are verified by CI on their own PR, so they skip dashboard approval.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": false
+    },
+    {
+      "description": "A Node.js major in setup-node changes the runtime of every build and deploy, so it waits for dashboard approval. Must follow the workflow action major rule.",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["node"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}

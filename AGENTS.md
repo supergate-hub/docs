@@ -51,6 +51,7 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents |
 | `app/og/` | Generated Open Graph images |
 | `.github/workflows/pages.yml` | Checks every pull request; deploys `main` to GitHub Pages and the Ask AI Worker |
+| `renovate.json` | Weekly dependency update PRs. Pin each action by SHA with a `# vX.Y.Z` comment, which Renovate needs to update it |
 
 Do not edit generated output in `.source/`, `.next/`, or `out/`.
 
