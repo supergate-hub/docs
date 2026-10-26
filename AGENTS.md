@@ -8,11 +8,11 @@ Guidance for AI coding agents and contributors working in this repository.
 Public documentation site for Supergate's three products, built with
 [Fumadocs](https://fumadocs.dev) on Next.js (App Router) and Fumadocs MDX.
 
-| Product | Content folder | URL |
-| --- | --- | --- |
-| Cloud (GPU IaaS) | `content/docs/cloud/` | `/cloud` |
+| Product                                         | Content folder                | URL              |
+| ----------------------------------------------- | ----------------------------- | ---------------- |
+| Cloud (GPU IaaS)                                | `content/docs/cloud/`         | `/cloud`         |
 | Token Factory (OpenAI-compatible inference API) | `content/docs/token-factory/` | `/token-factory` |
-| Bio Pipeline | `content/docs/bio/` | `/bio` |
+| Bio Pipeline                                    | `content/docs/bio/`           | `/bio`           |
 
 The marketing landing site is a separate project. This app only serves docs, so the
 docs live at the site root and the hub page is `/`. The site is a static export
@@ -37,21 +37,21 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 
 ## Layout
 
-| Path | Purpose |
-| --- | --- |
-| `content/docs/` | All docs pages (MDX) and sidebar config (`meta.json`) |
-| `content/docs/index.mdx` | Docs hub that links to each product |
-| `lib/source.ts` | Content source, loader, and `llms.txt` rendering |
-| `lib/shared.ts` | App name, routes, base path, GitHub repo used by page links, and the Ask AI flag |
-| `lib/layout.shared.tsx` | Nav options shared by layouts |
-| `components/mdx.tsx` | Components available in MDX without imports |
-| `components/search-dialog.tsx` | Search dialog that queries the exported index in the browser |
-| `app/(docs)/` | Docs layout and the catch-all page route at the site root |
-| `app/api/search/` | Search index, exported at build time |
-| `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents |
-| `app/og/` | Generated Open Graph images |
-| `.github/workflows/pages.yml` | Checks every pull request; deploys `main` to GitHub Pages and the Ask AI Worker |
-| `renovate.json` | Weekly dependency update PRs. Pin each action by SHA with a `# vX.Y.Z` comment, which Renovate needs to update it |
+| Path                                                | Purpose                                                                                                           |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `content/docs/`                                     | All docs pages (MDX) and sidebar config (`meta.json`)                                                             |
+| `content/docs/index.mdx`                            | Docs hub that links to each product                                                                               |
+| `lib/source.ts`                                     | Content source, loader, and `llms.txt` rendering                                                                  |
+| `lib/shared.ts`                                     | App name, routes, base path, GitHub repo used by page links, and the Ask AI flag                                  |
+| `lib/layout.shared.tsx`                             | Nav options shared by layouts                                                                                     |
+| `components/mdx.tsx`                                | Components available in MDX without imports                                                                       |
+| `components/search-dialog.tsx`                      | Search dialog that queries the exported index in the browser                                                      |
+| `app/(docs)/`                                       | Docs layout and the catch-all page route at the site root                                                         |
+| `app/api/search/`                                   | Search index, exported at build time                                                                              |
+| `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents                                                                               |
+| `app/og/`                                           | Generated Open Graph images                                                                                       |
+| `.github/workflows/pages.yml`                       | Checks every pull request; deploys `main` to GitHub Pages and the Ask AI Worker                                   |
+| `renovate.json`                                     | Weekly dependency update PRs. Pin each action by SHA with a `# vX.Y.Z` comment, which Renovate needs to update it |
 
 Do not edit generated output in `.source/`, `.next/`, or `out/`.
 
@@ -60,7 +60,6 @@ Do not edit generated output in `.source/`, `.next/`, or `out/`.
 `main` deploys through `.github/workflows/pages.yml`: the static site to GitHub Pages and
 the Ask AI Worker to Cloudflare. Pull requests run the same lint, type checks, build, and a
 Worker bundle check (`wrangler deploy --dry-run`) without deploying.
-
 - **Static only.** `next.config.mjs` sets `output: 'export'`, so nothing runs at request
   time: no middleware, no `redirects()`, and no route handlers other than static `GET`.
 - **Base path.** On `github.io` the site lives under `/docs` (the repository name),
@@ -86,16 +85,15 @@ time; otherwise the header has no Ask AI button. GitHub Pages has no server, so 
 deployed chat endpoint is a Cloudflare Worker in `worker/`. The Next.js route
 `/api/chat` serves the same logic under `pnpm dev` and returns 404 when the flag is off.
 
-| Path | Purpose |
-| --- | --- |
-| `lib/ai/assistant.ts` | Docs index, `search`/`read` tools, instructions, model list, and `llms*.txt` parsing |
-| `lib/ai/types.ts` | Chat message and tool types shared by the panel, the route, and the Worker |
-| `app/api/chat/route.ts` | Chat endpoint for `pnpm dev`; builds the index from the docs source |
-| `worker/` | Chat endpoint for the static site (Cloudflare Worker, `wrangler.jsonc`) |
-| `scripts/build-worker-docs.ts` | Writes the docs the Worker bundles, from `out/llms*.txt` |
-| `components/ai/` | Chat panel and layout wrapper |
-| `scripts/ask-ai-eval/` | Rule-based eval that compares the current setup with a baseline |
-
+| Path                           | Purpose                                                                              |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| `lib/ai/assistant.ts`          | Docs index, `search`/`read` tools, instructions, model list, and `llms*.txt` parsing |
+| `lib/ai/types.ts`              | Chat message and tool types shared by the panel, the route, and the Worker           |
+| `app/api/chat/route.ts`        | Chat endpoint for `pnpm dev`; builds the index from the docs source                  |
+| `worker/`                      | Chat endpoint for the static site (Cloudflare Worker, `wrangler.jsonc`)              |
+| `scripts/build-worker-docs.ts` | Writes the docs the Worker bundles, from `out/llms*.txt`                             |
+| `components/ai/`               | Chat panel and layout wrapper                                                        |
+| `scripts/ask-ai-eval/`         | Rule-based eval that compares the current setup with a baseline                      |
 - Keep `lib/ai/assistant.ts` and `lib/ai/types.ts` free of Next.js, Fumadocs, and React
   imports. The Worker and the eval import them outside the app.
 - `components/ai/chat`, `components/codeblock.tsx`, `components/tabs`, `components/ui`,
