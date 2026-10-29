@@ -50,6 +50,7 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `app/api/search/`                                   | Search index, exported at build time                                                                              |
 | `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents                                                                               |
 | `app/og/`                                           | Generated Open Graph images                                                                                       |
+| `app/icon*.png`, `app/apple-icon.png`               | Favicons, the same files supergate.cloud and supergate.cc serve                                                   |
 | `.github/workflows/pages.yml`                       | Checks every pull request; deploys `main` to GitHub Pages and the Ask AI Worker                                   |
 | `renovate.json`                                     | Weekly dependency update PRs. Pin each action by SHA with a `# vX.Y.Z` comment, which Renovate needs to update it |
 
