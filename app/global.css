@@ -9,8 +9,8 @@
 }
 
 @theme {
-  /* Supergate CI blue, as the CMYK logo renders on screen. */
-  --color-brand: #2e459a;
+  /* Supergate CI blue in RGB, as supergate.cloud shows the logo. */
+  --color-brand: #1428a0;
 }
 
 /* Accent color per product. app/layout.client.tsx adds the class to <body>. */

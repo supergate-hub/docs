@@ -16,7 +16,7 @@ Public documentation site for Supergate's three products, built with
 
 The marketing landing site is a separate project. This app only serves docs, so the
 docs live at the site root and the hub page is `/`. The site is a static export
-published to GitHub Pages; see [Deployment](#deployment).
+published to GitHub Pages at https://docs.supergate.cloud; see [Deployment](#deployment).
 
 **This repository is public.** Everything committed here is visible to anyone.
 
@@ -50,6 +50,7 @@ Run `pnpm lint`, `pnpm types:check`, and `pnpm build` before committing.
 | `app/api/search/`                                   | Search index, exported at build time                                                                              |
 | `app/llms.txt`, `app/llms-full.txt`, `app/llms.mdx` | Machine-readable docs for AI agents                                                                               |
 | `app/og/`                                           | Generated Open Graph images                                                                                       |
+| `app/icon*.png`, `app/apple-icon.png`               | Favicons, the same files supergate.cloud and supergate.cc serve                                                   |
 | `.github/workflows/pages.yml`                       | Checks every pull request; deploys `main` to GitHub Pages and the Ask AI Worker                                   |
 | `renovate.json`                                     | Weekly dependency update PRs. Pin each action by SHA with a `# vX.Y.Z` comment, which Renovate needs to update it |
 
@@ -62,14 +63,16 @@ the Ask AI Worker to Cloudflare. Pull requests run the same lint, type checks, b
 Worker bundle check (`wrangler deploy --dry-run`) without deploying.
 - **Static only.** `next.config.mjs` sets `output: 'export'`, so nothing runs at request
   time: no middleware, no `redirects()`, and no route handlers other than static `GET`.
-- **Base path.** On `github.io` the site lives under `/docs` (the repository name),
-  so a page such as `/cloud` is served at `/docs/cloud/`. The workflow passes it as
-  `NEXT_PUBLIC_BASE_PATH`. Next.js adds it
-  to `<Link>` and assets; prefix `basePath` from `lib/shared.ts` yourself for URLs that
-  code fetches directly.
-- **Custom domain.** Set it in the repository's Pages settings. `configure-pages` then
-  reports an empty base path, and no code change is needed. Update `ALLOWED_ORIGINS` and
-  `DOCS_BASE_PATH` in `worker/wrangler.jsonc` to match.
+- **Domain.** `docs.supergate.cloud` is set in the repository's Pages settings, with a
+  DNS-only CNAME to `supergate-hub.github.io` in Cloudflare and HTTPS enforced. Old
+  `supergate-hub.github.io/docs/` URLs redirect to it.
+- **Base path.** `configure-pages` reads the base path and origin from the Pages settings,
+  and the workflow passes them as `NEXT_PUBLIC_BASE_PATH` and `SITE_ORIGIN`. The base path
+  is empty at the domain root and `/docs` without a custom domain. Next.js adds it to
+  `<Link>` and assets; prefix `basePath` from `lib/shared.ts` yourself for URLs that code
+  fetches directly.
+- **Changing the domain.** Update `ALLOWED_ORIGINS` and `DOCS_BASE_PATH` in
+  `worker/wrangler.jsonc` to match, or Ask AI requests from the new origin fail CORS.
 - **Worker.** The `deploy-worker` job uses the `production` environment, which only `main`
   may use. It reads `CLOUDFLARE_API_TOKEN` and `OPENROUTER_API_KEY` from that environment's
   secrets and `CLOUDFLARE_ACCOUNT_ID` from its variables, and uploads the OpenRouter key as
