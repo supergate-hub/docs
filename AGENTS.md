@@ -61,6 +61,7 @@ Do not edit generated output in `.source/`, `.next/`, or `out/`.
 `main` deploys through `.github/workflows/pages.yml`: the static site to GitHub Pages and
 the Ask AI Worker to Cloudflare. Pull requests run the same lint, type checks, build, and a
 Worker bundle check (`wrangler deploy --dry-run`) without deploying.
+
 - **Static only.** `next.config.mjs` sets `output: 'export'`, so nothing runs at request
   time: no middleware, no `redirects()`, and no route handlers other than static `GET`.
 - **Domain.** `docs.supergate.cloud` is set in the repository's Pages settings, with a
